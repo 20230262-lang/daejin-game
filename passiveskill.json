@@ -1,0 +1,128 @@
+{
+  "passives": [
+   {
+      "name": "재회",
+      "desc": "다시 만날 그날을 위해 같은 모습을 유지해야만 한다.",
+      "hooks": {
+        "onChoiceSelected": "if (context.choice_category === '멘탈') { let penalty = 0; if (context.hasPassive('사랑')) penalty += (context.getTagCount('탐욕') + context.getTagCount('이기심')); if (context.hasPassive('우정')) penalty += (context.getTagCount('교정') + context.getTagCount('규율')); if (context.hasPassive('원망')) penalty += (context.getTagCount('친절') + context.getTagCount('정의감')); context.sanity -= penalty; context.log += ` ➡️ <재회> 패널티로 이성 ${penalty} 추가 감소.`; }"
+      }
+    },
+    {
+      "name": "후회",
+      "desc": "그때 한 약속을 잊어서는 안 된다.",
+      "hooks": {
+        "onChoiceSelected": "if (context.choice_category === '광기') { context.hidden_penalty_dice = Math.min((context.hidden_penalty_dice || 0) + 1, 3); }",
+        "onDiceRoll": "if (context.hidden_penalty_dice > 0) { if (context.die1 >= context.die2) { context.die1 = Math.floor(Math.random() * 6) + 1; } else { context.die2 = Math.floor(Math.random() * 6) + 1; } context.hidden_penalty_dice--; context.rollLogsText += ` ➡️ <후회> 패널티 재굴림 적용 최종: ${context.die1} + ${context.die2}`; }"
+      }
+    },
+    {
+      "name": "복수 (경멸)",
+      "desc": "그 자를 끌어내리고야 말겠다.",
+      "hooks": {
+        "onTagAcquired": "if (['친절', '규율', '자유'].includes(context.acquired_tag)) { if (context.has_anger_stat) { context.max_anger -= 5; context.log += ' ➡️ <복수> 분노 최대치 5 감소.'; } else { context.max_sanity -= 2; context.log += ' ➡️ <복수> 이성 최대치 2 감소.'; } }"
+      }
+    },
+    {
+      "name": "우정",
+      "desc": "영혼의 궤도를 함께 도는 동반자이자 아군.",
+      "hooks": {
+        "onDiceRoll": "if (context.die1 !== undefined && context.die2 !== undefined) { if (context.die1 < context.die2) { context.die1 = Math.floor(Math.random() * 6) + 1; } else { context.die2 = Math.floor(Math.random() * 6) + 1; } context.rollLogsText += ` ➡️ <우정 재굴림> 최종: ${context.die1} + ${context.die2}`; }"
+      }
+    },
+    {
+      "name": "원망",
+      "desc": "가슴속에 도사린 증오와 끊어낼 수 없는 악연.",
+      "hooks": {
+        "onPassiveAcquired": "context.has_anger_stat = true;",
+        "onChoiceCostCalc": "if (context.desire >= 100 && context.desire_increase > 0 && (!context.choice_tags || !context.choice_tags.includes('본능'))) { context.anger -= context.desire_increase; context.desire_increase = 0; context.log += ' ➡️ <원망> 욕망 대신 분노를 소모하여 진행.'; }",
+        "onLifeEnd": "if(context.anger !== undefined) { context.anger += 30; }"
+      }
+    },
+    {
+      "name": "사랑",
+      "desc": "이 세상 모든 역경을 이겨내게 하는 가장 원초적이고 강력한 감정.",
+      "hooks": {
+        "onChoiceGeneration": "if (context.sanity <= 0) { context.ignore_madness_lock = true; }"
+      }
+    },
+    {
+      "name": "유교정신",
+      "desc": "충효와 예의범절, 그리고 엄격한 도덕적 규율로 자아를 철저히 통제한다.",
+      "hooks": {
+        "onChoiceSelected": "if (context.choice_tags && (context.choice_tags.includes('규율') || context.choice_tags.includes('정의감'))) { context.desire_increase = 0; context.sanity += 3; context.log += ' ➡️ <유교정신> 욕망 상승 무효화 및 이성 3 회복.'; }"
+      }
+    },
+    {
+      "name": "공리주의",
+      "desc": "최대 다수의 최대 행복. 감정을 배제하고 가장 효율적이고 합리적인 가치를 계산한다.",
+      "hooks": {
+        "onRewardCalc": "if (context.reward_type === '카르마') { context.reward_amount = Math.floor(context.reward_amount * 1.25); }",
+        "onPenaltyCalc": "if (context.penalty_type === '이성') { context.penalty_amount = Math.floor(context.penalty_amount * 1.20); }"
+      }
+    },
+    {
+      "name": "철학적 사색",
+      "desc": "삶과 죽음, 무한한 환생의 굴레 속에서 세계와 자아의 본질을 끊임없이 탐구한다.",
+      "hooks": {
+        "onPenaltyCalc": "if (context.choice_category === '일반' && context.penalty_type === '이성' && Math.random() < 0.25) { context.penalty_amount = 0; context.log += ' ➡️ <철학적 사색> 이성 패널티 무효화.'; }",
+        "onDiceResultCalc": "if ((context.sanity / context.max_sanity) <= 0.3) { context.dice_result += 7; context.rollLogsText += ' ➡️ <사색의 극의> 주사위 결과 +7 보정.'; }"
+      }
+    },
+    {
+      "name": "맑은 거울",
+      "desc": "자신을 되돌아보고 원치 않는 꼬리표를 떼어냅니다. 습득 시 원하는 태그 3개를 삭제합니다.",
+      "hooks": {
+        "onAcquire": "context.triggerUI('remove_tags', 3);"
+      }
+    },
+    {
+      "name": "따스한 온기",
+      "desc": "[힐링] 카테고리 선택지를 고를 때마다, 기본 효과 외에 이성(정신력)이 2 고정 추가 회복됩니다.",
+      "hooks": {
+        "onOptionSelect": "if (context.category === '힐링') { context.stats.sanity += 2; context.log('☕ [따스한 온기] 효과로 이성이 2 추가 회복되었습니다.'); }"
+      }
+    },
+    {
+      "name": "가벼운 걸음",
+      "desc": "[광기] 카테고리 선택지를 고를 때 발생하는 이성 감소 패널티가 영구히 3 감소합니다.",
+      "hooks": {
+        "onStatChange": "if (context.category === '광기' && context.stat_changes.sanity < 0) { context.stat_changes.sanity = Math.min(0, context.stat_changes.sanity + 3); }"
+      }
+    },
+    {
+      "name": "황금의 촉수",
+      "desc": "게임 중 [탐욕] 태그를 획득할 때마다, 15% 확률로 카르마를 3 추가로 즉시 획득합니다.",
+      "hooks": {
+        "onTagImpact": "if (context.tag_impact['탐욕'] > 0 && Math.random() < 0.15) { context.stats.karma += 3; context.log('🐙 [황금의 촉수]가 반응하여 카르마를 3 획득했습니다.'); }"
+      }
+    },
+    {
+      "name": "부러지지 않는 추",
+      "desc": "주사위 판정 시, 주사위 눈의 최솟값이 항상 15로 보정됩니다. (15 이하의 눈이 나오면 자동으로 15로 처리)",
+      "hooks": {
+        "onDiceRoll": "if (context.total < 15) { context.total = 15; context.rollLogsText += ' ⚖️ <부러지지 않는 추> 눈이 15로 보정되었습니다.'; }"
+      }
+    },
+    {
+      "name": "수호자의 오라",
+      "desc": "[본능] 카테고리 선택지를 고를 때 발생하는 욕망 상승량이 영구히 2 감소합니다.",
+      "hooks": {
+        "onStatChange": "if (context.category === '본능' && context.stat_changes.desire > 0) { context.stat_changes.desire = Math.max(0, context.stat_changes.desire - 2); }"
+      }
+    },
+    {
+      "name": "증기 심장",
+      "desc": "매 생(Life)의 최초로 마주하는 주사위 이벤트에서 낮은 눈의 주사위를 1회 재굴림한다.",
+      "hooks": {
+        "onDiceRoll": "if (context.state.isFirstDiceEventOfLife) { if (context.die1 <= context.die2) { context.die1 = Math.floor(Math.random() * 6) + 1; } else { context.die2 = Math.floor(Math.random() * 6) + 1; } context.state.isFirstDiceEventOfLife = false; context.rollLogsText += ' ⚙️ <증기 심장> 첫 주사위 재굴림 발동!'; }"
+      }
+    },
+    {
+      "name": "가시 방패",
+      "desc": "주사위 판정 실패 시 감소하는 이성(정신력)의 대미지가 영구히 20% 감소합니다.",
+      "hooks": {
+        "onDiceFail": "if (context.fail_penalty.sanity) { context.fail_penalty.sanity = Math.floor(context.fail_penalty.sanity * 0.8); context.rollLogsText += ' 🛡️ <가시 방패> 이성 대미지 20% 감소!'; }"
+      }
+    }
+  ]
+}
