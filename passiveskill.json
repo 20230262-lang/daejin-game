@@ -16,7 +16,7 @@
       }
     },
     {
-      "name": "복수 (경멸)",
+      "name": "복수",
       "desc": "그 자를 끌어내리고야 말겠다.\n\n<친절>, <규율>, <자유> 태그 획득 시 분노 최대치를 5 차감합니다. 분노 스탯이 없다면 이성의 최대치를 2 차감합니다.",
       "hooks": {
         "onTagAcquired": "if (['친절', '규율', '자유'].includes(context.acquired_tag)) { if (context.has_anger_stat) { context.max_anger -= 5; context.log += ' ➡️ <복수> 분노 최대치 5 감소.'; } else { context.max_sanity -= 2; context.log += ' ➡️ <복수> 이성 최대치 2 감소.'; } }"
